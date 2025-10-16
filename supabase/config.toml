@@ -1,1 +1,4 @@
 project_id = "ovsvuhkflgddziwolhef"
+
+[functions.chat-with-sheets]
+verify_jwt = false
