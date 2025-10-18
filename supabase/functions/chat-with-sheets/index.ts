@@ -186,10 +186,50 @@ Quando responder:
   }
 });
 
-// Helper function to create JWT (simplified - in production use proper JWT library)
+// Helper function to create JWT with proper signing
 async function createJWT(header: any, claim: any, privateKey: string): Promise<string> {
-  const encodedHeader = btoa(JSON.stringify(header));
-  const encodedClaim = btoa(JSON.stringify(claim));
-  // This is a simplified version - in production, properly sign with private key
-  return `${encodedHeader}.${encodedClaim}.signature`;
+  // Base64url encode header and claim
+  const base64UrlEncode = (obj: any) => {
+    const str = JSON.stringify(obj);
+    return btoa(str)
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+  };
+
+  const encodedHeader = base64UrlEncode(header);
+  const encodedClaim = base64UrlEncode(claim);
+  const signatureInput = `${encodedHeader}.${encodedClaim}`;
+
+  // Clean the private key
+  const cleanedKey = privateKey
+    .replace(/-----BEGIN PRIVATE KEY-----/g, '')
+    .replace(/-----END PRIVATE KEY-----/g, '')
+    .replace(/\n/g, '');
+
+  // Import the private key
+  const binaryKey = Uint8Array.from(atob(cleanedKey), c => c.charCodeAt(0));
+  const cryptoKey = await crypto.subtle.importKey(
+    'pkcs8',
+    binaryKey,
+    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+
+  // Sign the signature input
+  const encoder = new TextEncoder();
+  const signatureBuffer = await crypto.subtle.sign(
+    'RSASSA-PKCS1-v1_5',
+    cryptoKey,
+    encoder.encode(signatureInput)
+  );
+
+  // Base64url encode the signature
+  const signature = btoa(String.fromCharCode(...new Uint8Array(signatureBuffer)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+
+  return `${signatureInput}.${signature}`;
 }
