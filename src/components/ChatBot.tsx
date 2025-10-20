@@ -16,7 +16,7 @@ const ChatBot = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: 'Olá! Sou seu assistente analista de dados da Alpha Insights. Como posso ajudá-lo a analisar seus dados hoje?',
+      content: 'Olá! Estou pronto para analisar suas planilhas. Faça perguntas sobre vendas, produtividade, tarefas ou qualquer métrica dos seus dados.',
       timestamp: new Date()
     }
   ]);
