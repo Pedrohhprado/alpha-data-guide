@@ -1,31 +1,14 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
-import { TrendingUp, BarChart3, PieChart as PieIcon } from "lucide-react";
+import { TrendingUp, BarChart3, PieChart as PieIcon, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-// Dados de exemplo - em produção viriam das planilhas
-const barData = [
-  { mes: "Jan", vendas: 4000, despesas: 2400 },
-  { mes: "Fev", vendas: 3000, despesas: 1398 },
-  { mes: "Mar", vendas: 2000, despesas: 9800 },
-  { mes: "Abr", vendas: 2780, despesas: 3908 },
-  { mes: "Mai", vendas: 1890, despesas: 4800 },
-  { mes: "Jun", vendas: 2390, despesas: 3800 },
-];
-
-const lineData = [
-  { dia: "Seg", produtividade: 85 },
-  { dia: "Ter", produtividade: 92 },
-  { dia: "Qua", produtividade: 78 },
-  { dia: "Qui", produtividade: 88 },
-  { dia: "Sex", produtividade: 95 },
-];
-
-const pieData = [
-  { name: "Concluídas", value: 65 },
-  { name: "Em Andamento", value: 25 },
-  { name: "Pendentes", value: 10 },
-];
+interface SheetData {
+  [key: string]: any;
+}
 
 const chartConfig = {
   vendas: {
@@ -43,6 +26,73 @@ const chartConfig = {
 };
 
 const DataCharts = () => {
+  const [sheetData, setSheetData] = useState<SheetData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchSheetData();
+  }, []);
+
+  const fetchSheetData = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase.functions.invoke('chat-with-sheets', {
+        body: {
+          messages: [{
+            role: 'user',
+            content: 'Por favor, retorne todos os dados das planilhas em formato JSON para visualização em gráficos.'
+          }]
+        }
+      });
+
+      if (error) throw error;
+      
+      // O retorno vem em data.reply como texto, precisamos processar
+      console.log('Sheet data:', data);
+      
+    } catch (error) {
+      console.error('Error fetching sheet data:', error);
+      toast.error('Erro ao carregar dados das planilhas');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Dados de exemplo enquanto carrega ou se não houver dados
+  const barData = sheetData.length > 0 ? sheetData : [
+    { mes: "Jan", vendas: 4000, despesas: 2400 },
+    { mes: "Fev", vendas: 3000, despesas: 1398 },
+    { mes: "Mar", vendas: 2000, despesas: 9800 },
+    { mes: "Abr", vendas: 2780, despesas: 3908 },
+    { mes: "Mai", vendas: 1890, despesas: 4800 },
+    { mes: "Jun", vendas: 2390, despesas: 3800 },
+  ];
+
+  const lineData = [
+    { dia: "Seg", produtividade: 85 },
+    { dia: "Ter", produtividade: 92 },
+    { dia: "Qua", produtividade: 78 },
+    { dia: "Qui", produtividade: 88 },
+    { dia: "Sex", produtividade: 95 },
+  ];
+
+  const pieData = [
+    { name: "Concluídas", value: 65 },
+    { name: "Em Andamento", value: 25 },
+    { name: "Pendentes", value: 10 },
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
+          <p className="text-muted-foreground">Carregando dados das planilhas...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>

@@ -38,21 +38,6 @@ const SideInfo = () => {
         ))}
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-3 gap-3 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-        <div className="text-center p-3 rounded-lg bg-card border border-border">
-          <p className="text-xl font-bold text-primary">99%</p>
-          <p className="text-[10px] text-muted-foreground">Precisão</p>
-        </div>
-        <div className="text-center p-3 rounded-lg bg-card border border-border">
-          <p className="text-xl font-bold text-primary">&lt;2s</p>
-          <p className="text-[10px] text-muted-foreground">Resposta</p>
-        </div>
-        <div className="text-center p-3 rounded-lg bg-card border border-border">
-          <p className="text-xl font-bold text-primary">24/7</p>
-          <p className="text-[10px] text-muted-foreground">Online</p>
-        </div>
-      </div>
     </div>
   );
 };
