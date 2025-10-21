@@ -36,19 +36,22 @@ const DataCharts = () => {
   const fetchSheetData = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase.functions.invoke('chat-with-sheets', {
-        body: {
-          messages: [{
-            role: 'user',
-            content: 'Por favor, retorne todos os dados das planilhas em formato JSON para visualização em gráficos.'
-          }]
-        }
-      });
+      const { data, error } = await supabase.functions.invoke('get-sheet-data');
 
       if (error) throw error;
       
-      // O retorno vem em data.reply como texto, precisamos processar
-      console.log('Sheet data:', data);
+      if (data?.sheets && data.sheets.length > 0) {
+        // Processa os dados das planilhas para os gráficos
+        const allData: SheetData[] = [];
+        data.sheets.forEach((sheet: any) => {
+          if (sheet.data && Array.isArray(sheet.data)) {
+            allData.push(...sheet.data);
+          }
+        });
+        
+        setSheetData(allData);
+        console.log('Loaded sheet data:', allData);
+      }
       
     } catch (error) {
       console.error('Error fetching sheet data:', error);
